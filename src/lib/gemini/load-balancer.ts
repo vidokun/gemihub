@@ -25,7 +25,12 @@ export async function selectNextKey(): Promise<ApiKey | null> {
     return new Date(a.last_used_at!).getTime() - new Date(b.last_used_at!).getTime();
   });
 
-  return keys[0];
+  const selected = keys[0];
+
+  // Immediately mark as used so the next call returns a different key
+  void updateLastUsedInternal(selected.id).catch(() => {});
+
+  return selected;
 }
 
 export async function markKeyUsed(keyId: number): Promise<void> {
