@@ -354,7 +354,8 @@ export async function executeWithRetry(
     switch (result.type) {
       case 'success': {
         const openAI = convertToOpenAIFormat(result.geminiResponse, request.model);
-        const tokensUsed = result.geminiResponse.usageMetadata?.totalTokenCount ?? 0;
+        const metadata = result.geminiResponse.usageMetadata;
+        const tokensUsed = metadata?.totalTokenCount ?? 0;
 
         // Fire-and-forget: log + mark (don't block the response)
         void markKeyUsed(key.id).catch(() => {});
@@ -363,6 +364,8 @@ export async function executeWithRetry(
           model: request.model,
           statusCode: 200,
           tokensUsed,
+          promptTokens: metadata?.promptTokenCount ?? 0,
+          completionTokens: metadata?.candidatesTokenCount ?? 0,
           latencyMs: result.latencyMs,
         }).catch(() => {});
 

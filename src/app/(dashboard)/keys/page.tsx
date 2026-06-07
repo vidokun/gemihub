@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import KeyTable from '@/components/KeyTable';
 import KeyForm from '@/components/KeyForm';
@@ -9,6 +9,7 @@ import {
   createApiKey,
   toggleApiKey,
   deleteApiKey,
+  getKeyUsageCounts,
 } from '@/lib/supabase/operations/api-keys';
 import type { ApiKey } from '@/lib/types';
 
@@ -97,6 +98,8 @@ function Spinner() {
 export default function KeysPage() {
   const router = useRouter();
   const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [usageCounts, setUsageCounts] = useState<Record<number, number>>({});
+  const [loadingIds, setLoadingIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -105,10 +108,14 @@ export default function KeysPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchKeys = async () => {
+  const fetchKeys = useCallback(async () => {
     try {
-      const data = await getAllKeys();
+      const [data, counts] = await Promise.all([
+        getAllKeys(),
+        getKeyUsageCounts(),
+      ]);
       setKeys(data);
+      setUsageCounts(counts);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load API keys');
@@ -116,12 +123,11 @@ export default function KeysPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch
     fetchKeys();
-  }, []);
+  }, [fetchKeys]);
 
   const filtered = keys.filter((k) =>
     k.name.toLowerCase().includes(search.toLowerCase())
@@ -142,9 +148,20 @@ export default function KeysPage() {
   };
 
   const handleToggle = async (id: number) => {
-    await toggleApiKey(id);
-    await fetchKeys();
-    router.refresh();
+    setLoadingIds((prev) => new Set(prev).add(id));
+    try {
+      await toggleApiKey(id);
+      await fetchKeys();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle API key');
+    } finally {
+      setLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -226,6 +243,8 @@ export default function KeysPage() {
         <>
           <KeyTable
             keys={paginatedKeys}
+            usageCounts={usageCounts}
+            loadingIds={loadingIds}
             onToggle={handleToggle}
             onDelete={(id) => setDeleteId(id)}
           />

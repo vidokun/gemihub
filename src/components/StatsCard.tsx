@@ -1,19 +1,21 @@
 interface StatsCardProps {
   label: string;
   value: number;
-  color: 'purple' | 'amber' | 'blue';
+  color: 'purple' | 'amber' | 'blue' | 'emerald';
 }
 
 const accentMap: Record<StatsCardProps['color'], string> = {
   purple: '#8b5cf6',
   amber: '#f59e0b',
   blue: '#3b82f6',
+  emerald: '#10b981',
 };
 
 const bgTintMap: Record<StatsCardProps['color'], string> = {
   purple: 'rgba(139, 92, 246, 0.06)',
   amber: 'rgba(245, 158, 11, 0.06)',
   blue: 'rgba(59, 130, 246, 0.06)',
+  emerald: 'rgba(16, 185, 129, 0.06)',
 };
 
 export default function StatsCard({ label, value, color }: StatsCardProps) {

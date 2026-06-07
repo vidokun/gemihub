@@ -55,5 +55,7 @@ export interface DashboardStats {
   activeKeys: number;
   rateLimitedKeys: number;
   totalRequests: number;
+  tokensIn: number;
+  tokensOut: number;
   avgLatency?: number;
 }

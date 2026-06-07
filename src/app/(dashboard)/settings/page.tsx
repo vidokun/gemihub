@@ -6,18 +6,7 @@ import {
   setAllowedModels,
   getDefaultModel,
   setDefaultModel,
-  fetchGeminiModels,
 } from '@/lib/supabase/operations/settings';
-
-const KNOWN_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash-lite',
-  'gemini-2.5-flash-lite',
-];
 
 function Spinner() {
   return (
@@ -44,26 +33,6 @@ function Spinner() {
   );
 }
 
-function DownloadIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  );
-}
-
 function SaveIcon() {
   return (
     <svg
@@ -84,14 +53,52 @@ function SaveIcon() {
   );
 }
 
+function XIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
 export default function SettingsPage() {
   const [allowed, setAllowed] = useState<string[]>([]);
   const [defaultModel, setDefaultModelState] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [fetching, setFetching] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [newModel, setNewModel] = useState('');
 
   const loadSettings = useCallback(async () => {
     try {
@@ -113,22 +120,22 @@ export default function SettingsPage() {
     loadSettings();
   }, [loadSettings]);
 
-  const availableModels = Array.from(
-    new Set([...KNOWN_MODELS, ...allowed].sort())
-  );
-
-  const handleToggle = (model: string) => {
-    setAllowed((prev) =>
-      prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model]
-    );
+  const handleAddModel = () => {
+    const trimmed = newModel.trim();
+    if (!trimmed) return;
+    if (allowed.includes(trimmed)) {
+      setError('Model already added');
+      return;
+    }
+    setAllowed((prev) => [...prev, trimmed].sort());
+    setNewModel('');
+    setError('');
   };
 
-  const handleSelectAll = () => {
-    const all = availableModels.filter((m) => !allowed.includes(m));
-    if (all.length === 0) {
-      setAllowed([]);
-    } else {
-      setAllowed((prev) => [...new Set([...prev, ...all])]);
+  const handleRemoveModel = (model: string) => {
+    setAllowed((prev) => prev.filter((m) => m !== model));
+    if (defaultModel === model) {
+      setDefaultModelState('');
     }
   };
 
@@ -148,22 +155,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLoadFromGemini = async () => {
-    setFetching(true);
-    setError('');
-    try {
-      const geminiModels = await fetchGeminiModels();
-      const merged = Array.from(new Set([...KNOWN_MODELS, ...geminiModels].sort()));
-      setAllowed((prev) =>
-        prev.filter((m) => merged.includes(m))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch Gemini models');
-    } finally {
-      setFetching(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -171,8 +162,6 @@ export default function SettingsPage() {
       </div>
     );
   }
-
-  const allChecked = availableModels.every((m) => allowed.includes(m));
 
   return (
     <div className="max-w-3xl">
@@ -182,7 +171,7 @@ export default function SettingsPage() {
             Model Settings
           </h1>
           <p className="text-sm text-[var(--muted)] mt-1">
-            Choose which Gemini models are available through the gateway.
+            Manage which Gemini models are available through the gateway.
           </p>
         </div>
       </div>
@@ -200,107 +189,86 @@ export default function SettingsPage() {
       )}
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-[var(--text)]">
-            Allowed Models
-          </h2>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleSelectAll}
-              className="
-                text-xs font-medium
-                text-[var(--muted)] hover:text-[var(--text)]
-                transition-colors duration-150
-              "
-            >
-              {allChecked ? 'Deselect All' : 'Select All'}
-            </button>
-            <button
-              type="button"
-              onClick={handleLoadFromGemini}
-              disabled={fetching}
-              className="
-                inline-flex items-center gap-1.5
-                h-8 px-3 rounded-lg
-                text-xs font-medium
-                border border-[var(--border)]
-                text-[var(--muted)] hover:text-[var(--text)]
-                hover:bg-[var(--border)]
-                transition-colors duration-150 ease-out
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
-            >
-              {fetching ? (
-                <svg
-                  className="animate-spin h-3.5 w-3.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-              ) : (
-                <DownloadIcon />
-              )}
-              Load from Gemini
-            </button>
-          </div>
+        <h2 className="text-base font-semibold text-[var(--text)] mb-4">
+          Allowed Models
+        </h2>
+
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            type="text"
+            value={newModel}
+            onChange={(e) => {
+              setNewModel(e.target.value);
+              if (error) setError('');
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAddModel();
+            }}
+            placeholder="e.g. gemini-2.5-flash"
+            className="
+              flex-1 h-10 px-3.5 rounded-lg
+              bg-[var(--bg)]
+              border border-[var(--border)]
+              text-[var(--text)] text-sm
+              placeholder:text-[var(--muted)]
+              outline-none
+              transition-colors duration-150 ease-out
+              focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30
+            "
+          />
+          <button
+            type="button"
+            onClick={handleAddModel}
+            className="
+              inline-flex items-center gap-1.5
+              h-10 px-4 rounded-lg
+              bg-[var(--accent)]
+              text-white text-sm font-semibold
+              transition-colors duration-150 ease-out
+              hover:opacity-90
+              shrink-0
+            "
+          >
+            <PlusIcon />
+            Add
+          </button>
         </div>
 
-        <div className="space-y-1">
-          {availableModels.length === 0 && (
-            <p className="text-sm text-[var(--muted)] py-4 text-center">
-              No models configured. Click &ldquo;Load from Gemini&rdquo; or add models manually.
-            </p>
-          )}
-
-          {availableModels.map((model) => (
-            <label
-              key={model}
-              className={`
-                flex items-center gap-3
-                px-3 py-2.5 rounded-lg
-                cursor-pointer
-                transition-colors duration-100 ease-out
-                hover:bg-[var(--border)]/50
-                ${allowed.includes(model) ? 'bg-[var(--accent)]/5' : ''}
-              `}
-            >
-              <input
-                type="checkbox"
-                checked={allowed.includes(model)}
-                onChange={() => handleToggle(model)}
+        {allowed.length === 0 ? (
+          <p className="text-sm text-[var(--muted)] py-4 text-center">
+            No models configured. Add models manually above.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {allowed.map((model) => (
+              <span
+                key={model}
                 className="
-                  h-4 w-4 rounded
-                  border-[var(--border)]
-                  bg-[var(--bg)]
-                  text-[var(--accent)]
-                  accent-[var(--accent)]
-                  cursor-pointer
+                  inline-flex items-center gap-1.5
+                  px-3 py-1.5 rounded-lg
+                  bg-[var(--accent)]/10
+                  border border-[var(--accent)]/20
+                  text-sm text-[var(--text)] font-medium
                 "
-              />
-              <span className="text-sm text-[var(--text)] font-medium">
+              >
                 {model}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveModel(model)}
+                  className="
+                    p-0.5 rounded
+                    text-[var(--muted)]
+                    hover:text-red-400 hover:bg-red-500/10
+                    transition-colors duration-150 ease-out
+                  "
+                  aria-label={`Remove ${model}`}
+                >
+                  <XIcon />
+                </button>
               </span>
-              {allowed.includes(model) && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-              )}
-            </label>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 mb-6">
@@ -310,7 +278,7 @@ export default function SettingsPage() {
 
         {allowed.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">
-            Enable at least one model above to set a default.
+            Add at least one model above to set a default.
           </p>
         ) : (
           <select
@@ -330,6 +298,7 @@ export default function SettingsPage() {
               pr-10
             "
           >
+            <option value="">Select a default model</option>
             {allowed.map((model) => (
               <option key={model} value={model}>
                 {model}

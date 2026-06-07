@@ -47,6 +47,8 @@ export interface Database {
           model: string | null;
           status_code: number | null;
           tokens_used: number | null;
+          prompt_tokens: number | null;
+          completion_tokens: number | null;
           latency_ms: number | null;
           error_message: string | null;
           request_ip: string | null;
@@ -58,6 +60,8 @@ export interface Database {
           model?: string | null;
           status_code?: number | null;
           tokens_used?: number | null;
+          prompt_tokens?: number | null;
+          completion_tokens?: number | null;
           latency_ms?: number | null;
           error_message?: string | null;
           request_ip?: string | null;
@@ -69,6 +73,8 @@ export interface Database {
           model?: string | null;
           status_code?: number | null;
           tokens_used?: number | null;
+          prompt_tokens?: number | null;
+          completion_tokens?: number | null;
           latency_ms?: number | null;
           error_message?: string | null;
           request_ip?: string | null;

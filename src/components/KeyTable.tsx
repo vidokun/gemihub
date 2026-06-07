@@ -5,6 +5,8 @@ import type { ApiKey } from '@/lib/types';
 
 interface KeyTableProps {
   keys: ApiKey[];
+  usageCounts: Record<number, number>;
+  loadingIds: Set<number>;
   onToggle: (id: number) => void;
   onDelete: (id: number) => void;
 }
@@ -82,15 +84,44 @@ function formatDate(iso: string): string {
   });
 }
 
+function SpinnerIcon() {
+  return (
+    <svg
+      className="animate-spin h-3.5 w-3.5"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  );
+}
+
 function KeyRow({
   apiKey,
   revealed,
+  isLoading,
+  usageCount,
   onToggleReveal,
   onToggle,
   onDelete,
 }: {
   apiKey: ApiKey;
   revealed: boolean;
+  isLoading: boolean;
+  usageCount: number;
   onToggleReveal: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -146,6 +177,10 @@ function KeyRow({
       </td>
 
       <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+        {usageCount}
+      </td>
+
+      <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
         {apiKey.error_count}
       </td>
 
@@ -158,29 +193,37 @@ function KeyRow({
           <button
             type="button"
             onClick={onToggle}
+            disabled={isLoading}
             className="
+              inline-flex items-center gap-1.5
               px-2.5 py-1.5 rounded-lg
               text-xs font-medium
               text-[var(--text)]
               border border-[var(--border)]
               hover:bg-[var(--border)]
               transition-colors duration-150 ease-out
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
           >
+            {isLoading ? (
+              <SpinnerIcon />
+            ) : null}
             {apiKey.is_active ? 'Disable' : 'Enable'}
           </button>
           <button
             type="button"
             onClick={onDelete}
+            disabled={isLoading}
             className="
               p-1.5 rounded-lg
               text-[var(--muted)]
               hover:text-red-400 hover:bg-red-500/10
               transition-colors duration-150 ease-out
+              disabled:opacity-50 disabled:cursor-not-allowed
             "
             aria-label="Delete key"
           >
-            <TrashIcon />
+            {isLoading ? <SpinnerIcon /> : <TrashIcon />}
           </button>
         </div>
       </td>
@@ -188,7 +231,7 @@ function KeyRow({
   );
 }
 
-export default function KeyTable({ keys, onToggle, onDelete }: KeyTableProps) {
+export default function KeyTable({ keys, usageCounts, loadingIds, onToggle, onDelete }: KeyTableProps) {
   const [revealedKeys, setRevealedKeys] = useState<Set<number>>(new Set());
 
   const toggleReveal = (id: number) => {
@@ -229,6 +272,9 @@ export default function KeyTable({ keys, onToggle, onDelete }: KeyTableProps) {
               Status
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+              Uses
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Errors
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
@@ -245,6 +291,8 @@ export default function KeyTable({ keys, onToggle, onDelete }: KeyTableProps) {
               key={apiKey.id}
               apiKey={apiKey}
               revealed={revealedKeys.has(apiKey.id)}
+              isLoading={loadingIds.has(apiKey.id)}
+              usageCount={usageCounts[apiKey.id] ?? 0}
               onToggleReveal={() => toggleReveal(apiKey.id)}
               onToggle={() => onToggle(apiKey.id)}
               onDelete={() => onDelete(apiKey.id)}

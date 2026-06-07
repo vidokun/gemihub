@@ -38,6 +38,16 @@ export default async function DashboardPage() {
           value={stats.totalRequests}
           color="blue"
         />
+        <StatsCard
+          label="Tokens In"
+          value={stats.tokensIn}
+          color="emerald"
+        />
+        <StatsCard
+          label="Tokens Out"
+          value={stats.tokensOut}
+          color="emerald"
+        />
       </div>
     </div>
   );

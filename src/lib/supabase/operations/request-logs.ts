@@ -8,6 +8,8 @@ export async function logRequest(data: {
   model: string;
   statusCode: number;
   tokensUsed: number;
+  promptTokens?: number;
+  completionTokens?: number;
   latencyMs: number;
   errorMessage?: string;
   requestIp?: string;
@@ -21,6 +23,8 @@ export async function logRequest(data: {
       model: data.model,
       status_code: data.statusCode,
       tokens_used: data.tokensUsed,
+      prompt_tokens: data.promptTokens ?? 0,
+      completion_tokens: data.completionTokens ?? 0,
       latency_ms: data.latencyMs,
       error_message: data.errorMessage ?? null,
       request_ip: data.requestIp ?? null,
@@ -40,6 +44,7 @@ export async function getRequestStats(): Promise<DashboardStats> {
     activeKeysResult,
     rateLimitedKeysResult,
     totalRequestsResult,
+    tokenSumsResult,
   ] = await Promise.all([
     supabase
       .from('api_keys')
@@ -52,16 +57,31 @@ export async function getRequestStats(): Promise<DashboardStats> {
     supabase
       .from('request_logs')
       .select('*', { count: 'exact', head: true }),
+    supabase
+      .from('request_logs')
+      .select('prompt_tokens, completion_tokens'),
   ]);
 
   const activeKeys = activeKeysResult.count ?? 0;
   const rateLimitedKeys = rateLimitedKeysResult.count ?? 0;
   const totalRequests = totalRequestsResult.count ?? 0;
 
+  const rows = tokenSumsResult.data ?? [];
+  const tokensIn = rows.reduce(
+    (sum, row) => sum + (row.prompt_tokens ?? 0),
+    0,
+  );
+  const tokensOut = rows.reduce(
+    (sum, row) => sum + (row.completion_tokens ?? 0),
+    0,
+  );
+
   return {
     activeKeys,
     rateLimitedKeys,
     totalRequests,
+    tokensIn,
+    tokensOut,
   };
 }
 

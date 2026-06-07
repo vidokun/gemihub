@@ -125,3 +125,22 @@ export async function updateLastUsed(id: number): Promise<void> {
     throw new Error(`Failed to update last used timestamp: ${error.message}`);
   }
 }
+
+export async function getKeyUsageCounts(): Promise<Record<number, number>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('request_logs')
+    .select('api_key_id');
+
+  if (error) {
+    throw new Error(`Failed to fetch key usage counts: ${error.message}`);
+  }
+
+  const counts: Record<number, number> = {};
+  for (const row of data ?? []) {
+    if (row.api_key_id != null) {
+      counts[row.api_key_id] = (counts[row.api_key_id] ?? 0) + 1;
+    }
+  }
+  return counts;
+}
