@@ -83,6 +83,21 @@ export interface Database {
           },
         ];
       };
+      settings: {
+        Row: {
+          key: string;
+          value: Json;
+        };
+        Insert: {
+          key: string;
+          value?: Json;
+        };
+        Update: {
+          key?: string;
+          value?: Json;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
