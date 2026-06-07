@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import NavSidebar from '@/components/NavSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'GemiHub',
   description: 'AI API Gateway & Load Balancer',

@@ -3,6 +3,8 @@ import type { DashboardStats } from '@/lib/types';
 import StatsCard from '@/components/StatsCard';
 import RefreshButton from '@/components/RefreshButton';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
   const stats: DashboardStats = await getRequestStats();
 
