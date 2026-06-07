@@ -27,8 +27,8 @@ export async function selectNextKey(): Promise<ApiKey | null> {
 
   const selected = keys[0];
 
-  // Immediately mark as used so the next call returns a different key
-  void updateLastUsedInternal(selected.id).catch(() => {});
+  // Mark as used now so the next selectNextKey call returns a different key
+  await updateLastUsedInternal(selected.id);
 
   return selected;
 }
