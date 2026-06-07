@@ -394,6 +394,7 @@ export async function executeWithRetry(
 
       case 'rate_limited': {
         exhaustedKeys.add(key.id);
+        void markKeyUsed(key.id).catch(() => {});
         void incrementErrorCountInternal(key.id).catch(() => {});
         void toggleApiKeyInternal(key.id).catch(() => {});
         continue;
@@ -413,6 +414,7 @@ export async function executeWithRetry(
       case 'server_error':
       case 'network_error': {
         exhaustedKeys.add(key.id);
+        void markKeyUsed(key.id).catch(() => {});
         void logRequest({
           apiKeyId: key.id,
           model: request.model,
