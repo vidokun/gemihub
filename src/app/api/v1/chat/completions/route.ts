@@ -52,7 +52,12 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const allowedModels = await getAllowedModels();
+  let allowedModels: string[] = [];
+  try {
+    allowedModels = await getAllowedModels();
+  } catch {
+    // Settings table might not exist yet — allow all models
+  }
   if (allowedModels.length > 0 && !allowedModels.includes(body.model)) {
     return new Response(
       JSON.stringify({
