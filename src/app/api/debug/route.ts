@@ -1,6 +1,8 @@
 export const runtime = 'edge';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getActiveKeysInternal } from '@/lib/supabase/operations/internal/api-keys';
+import { selectNextKey } from '@/lib/gemini/load-balancer';
 
 export async function GET() {
   const supabase = createAdminClient();
@@ -8,16 +10,23 @@ export async function GET() {
   const results: Record<string, unknown> = {};
   
   const { data: all, error: err1 } = await supabase.from('api_keys').select('id, name, is_active').limit(3);
-  results.all_keys = all;
-  results.all_error = err1?.message ?? null;
-  
-  const { data: active, error: err2 } = await supabase.from('api_keys').select('id, name, is_active').eq('is_active', true).limit(3);
-  results.active_keys = active;
-  results.active_error = err2?.message ?? null;
-  
-  const { count, error: err3 } = await supabase.from('api_keys').select('*', { count: 'exact', head: true });
-  results.total_count = count;
-  results.count_error = err3?.message ?? null;
+  results.direct_query = all;
+  results.direct_error = err1?.message ?? null;
+
+  try {
+    const keys = await getActiveKeysInternal();
+    results.internal_count = keys.length;
+    results.internal_first = keys[0]?.name ?? null;
+  } catch (e) {
+    results.internal_error = e instanceof Error ? e.message : String(e);
+  }
+
+  try {
+    const key = await selectNextKey();
+    results.selected_key = key?.name ?? null;
+  } catch (e) {
+    results.select_error = e instanceof Error ? e.message : String(e);
+  }
   
   return Response.json(results);
 }
