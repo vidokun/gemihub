@@ -396,7 +396,6 @@ export async function executeWithRetry(
         exhaustedKeys.add(key.id);
         void markKeyUsed(key.id).catch(() => {});
         void incrementErrorCountInternal(key.id).catch(() => {});
-        void toggleApiKeyInternal(key.id).catch(() => {});
         continue;
       }
 
