@@ -76,7 +76,23 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const response = await executeWithRetry(body);
+  let response: Response;
+  try {
+    response = await executeWithRetry(body);
+  } catch (err) {
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: err instanceof Error ? err.message : 'Internal server error',
+          code: 'INTERNAL_ERROR',
+        },
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      },
+    );
+  }
   for (const [key, value] of Object.entries(corsHeaders)) {
     response.headers.set(key, value);
   }
