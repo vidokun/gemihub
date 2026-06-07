@@ -1,6 +1,6 @@
 import { selectNextKey, markKeyUsed } from './load-balancer';
 import { GeminiProxyError, callGeminiNonStreaming } from './proxy';
-import { incrementErrorCount, toggleApiKey } from '@/lib/supabase/operations/api-keys';
+import { incrementErrorCountInternal, toggleApiKeyInternal } from '@/lib/supabase/operations/internal/api-keys';
 import { logRequest } from '@/lib/supabase/operations/request-logs';
 import type { GeminiRequest, GeminiResponse } from '@/lib/types';
 
@@ -394,8 +394,8 @@ export async function executeWithRetry(
 
       case 'rate_limited': {
         exhaustedKeys.add(key.id);
-        void incrementErrorCount(key.id).catch(() => {});
-        void toggleApiKey(key.id).catch(() => {});
+        void incrementErrorCountInternal(key.id).catch(() => {});
+        void toggleApiKeyInternal(key.id).catch(() => {});
         continue;
       }
 

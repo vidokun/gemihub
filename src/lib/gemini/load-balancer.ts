@@ -1,4 +1,4 @@
-import { getActiveKeys, updateLastUsed } from '@/lib/supabase/operations/api-keys';
+import { getActiveKeysInternal, updateLastUsedInternal } from '@/lib/supabase/operations/internal/api-keys';
 import type { ApiKey } from '@/lib/types';
 
 /**
@@ -8,7 +8,7 @@ import type { ApiKey } from '@/lib/types';
  * the DB — safe across serverless instances.
  */
 export async function selectNextKey(): Promise<ApiKey | null> {
-  const keys = await getActiveKeys();
+  const keys = await getActiveKeysInternal();
 
   if (keys.length === 0) {
     return null;
@@ -29,10 +29,10 @@ export async function selectNextKey(): Promise<ApiKey | null> {
 }
 
 export async function markKeyUsed(keyId: number): Promise<void> {
-  await updateLastUsed(keyId);
+  await updateLastUsedInternal(keyId);
 }
 
 export async function getKeyCount(): Promise<number> {
-  const keys = await getActiveKeys();
+  const keys = await getActiveKeysInternal();
   return keys.length;
 }
