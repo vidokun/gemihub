@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
 import { validateBearerToken, unauthorizedResponse } from '@/lib/auth/api-auth';
 import { executeWithRetry } from '@/lib/gemini/retry';
 import { getAllowedModels } from '@/lib/supabase/operations/settings';
