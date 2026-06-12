@@ -6,6 +6,7 @@ import {
   setAllowedModels,
   getDefaultModel,
   setDefaultModel,
+  testModelConnection,
 } from '@/lib/supabase/operations/settings';
 
 function Spinner() {
@@ -72,6 +73,21 @@ function XIcon() {
   );
 }
 
+function PlayIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+    >
+      <polygon points="7,2 22,12 7,22" />
+    </svg>
+  );
+}
+
 function PlusIcon() {
   return (
     <svg
@@ -99,6 +115,10 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [newModel, setNewModel] = useState('');
+  const [testingState, setTestingState] = useState<
+    Record<string, 'idle' | 'loading' | 'success' | 'error'>
+  >({});
+  const [testResults, setTestResults] = useState<Record<string, string>>({});
 
   const loadSettings = useCallback(async () => {
     try {
@@ -152,6 +172,25 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestModel = async (model: string) => {
+    setTestingState((prev) => ({ ...prev, [model]: 'loading' }));
+    setError('');
+    try {
+      const result = await testModelConnection(model);
+      if (result.success) {
+        setTestResults((prev) => ({ ...prev, [model]: result.response! }));
+        setTestingState((prev) => ({ ...prev, [model]: 'success' }));
+      } else {
+        setTestResults((prev) => ({ ...prev, [model]: result.error! }));
+        setTestingState((prev) => ({ ...prev, [model]: 'error' }));
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Test failed';
+      setTestResults((prev) => ({ ...prev, [model]: message }));
+      setTestingState((prev) => ({ ...prev, [model]: 'error' }));
     }
   };
 
@@ -240,33 +279,107 @@ export default function SettingsPage() {
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {allowed.map((model) => (
-              <span
-                key={model}
-                className="
-                  inline-flex items-center gap-1.5
-                  px-3 py-1.5 rounded-lg
-                  bg-[var(--accent)]/10
-                  border border-[var(--accent)]/20
-                  text-sm text-[var(--text)] font-medium
-                "
-              >
-                {model}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveModel(model)}
-                  className="
-                    p-0.5 rounded
-                    text-[var(--muted)]
-                    hover:text-red-400 hover:bg-red-500/10
+            {allowed.map((model) => {
+              const state = testingState[model] ?? 'idle';
+              const borderClass =
+                state === 'loading'
+                  ? 'border-[var(--muted)]/40'
+                  : 'border-[var(--accent)]/20';
+              return (
+                <span
+                  key={model}
+                  className={`
+                    inline-flex items-center gap-1.5
+                    px-3 py-1.5 rounded-lg
+                    bg-[var(--accent)]/10
+                    border ${borderClass}
+                    text-sm text-[var(--text)] font-medium
                     transition-colors duration-150 ease-out
-                  "
-                  aria-label={`Remove ${model}`}
+                  `}
                 >
-                  <XIcon />
-                </button>
-              </span>
-            ))}
+                  {model}
+                  <button
+                    type="button"
+                    onClick={() => handleTestModel(model)}
+                    disabled={state === 'loading'}
+                    className="
+                      inline-flex items-center justify-center
+                      w-5 h-5 rounded-full
+                      text-[var(--muted)]
+                      hover:text-[var(--accent)] hover:bg-[var(--accent)]/10
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      transition-colors duration-150 ease-out
+                    "
+                    aria-label={`Test ${model}`}
+                  >
+                    {state === 'loading' ? (
+                      <svg
+                        className="animate-spin h-3 w-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                    ) : (
+                      <PlayIcon />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveModel(model)}
+                    className="
+                      p-0.5 rounded
+                      text-[var(--muted)]
+                      hover:text-red-400 hover:bg-red-500/10
+                      transition-colors duration-150 ease-out
+                    "
+                    aria-label={`Remove ${model}`}
+                  >
+                    <XIcon />
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {Object.keys(testResults).length > 0 && (
+          <div className="mt-4 space-y-2">
+            {Object.entries(testResults).map(([model, text]) => {
+              const state = testingState[model] ?? 'idle';
+              if (state === 'loading') return null;
+              const isSuccess = state === 'success';
+              return (
+                <div
+                  key={model}
+                  className={`
+                    rounded-lg p-3
+                    ${isSuccess
+                      ? 'bg-emerald-500/10 border border-emerald-500/20'
+                      : 'bg-red-500/10 border border-red-500/20'
+                    }
+                  `}
+                >
+                  <p className="text-sm font-semibold text-[var(--text)] mb-1">
+                    {isSuccess ? model : `${model} — Error`}
+                  </p>
+                  <p className="text-sm text-[var(--text)]">{text}</p>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
