@@ -1,7 +1,7 @@
 import { selectNextKey, markKeyUsed } from './load-balancer';
 import { GeminiProxyError, callGeminiNonStreaming } from './proxy';
 import { incrementErrorCountInternal, toggleApiKeyInternal } from '@/lib/supabase/operations/internal/api-keys';
-import { logRequest } from '@/lib/supabase/operations/request-logs';
+import { logRequestInternal } from '@/lib/supabase/operations/internal/request-logs';
 import type { GeminiRequest, GeminiResponse } from '@/lib/types';
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -359,7 +359,7 @@ export async function executeWithRetry(
 
         // Fire-and-forget: log + mark (don't block the response)
         void markKeyUsed(key.id).catch(() => {});
-        void logRequest({
+        void logRequestInternal({
           apiKeyId: key.id,
           model: request.model,
           statusCode: 200,
@@ -377,7 +377,7 @@ export async function executeWithRetry(
 
       case 'stream_success': {
         void markKeyUsed(key.id).catch(() => {});
-        void logRequest({
+        void logRequestInternal({
           apiKeyId: key.id,
           model: request.model,
           statusCode: 200,
@@ -399,6 +399,14 @@ export async function executeWithRetry(
         exhaustedKeys.add(key.id);
         void markKeyUsed(key.id).catch(() => {});
         void incrementErrorCountInternal(key.id).catch(() => {});
+        void logRequestInternal({
+          apiKeyId: key.id,
+          model: request.model,
+          statusCode: 429,
+          tokensUsed: 0,
+          latencyMs: result.latencyMs,
+          errorMessage: 'Rate limited',
+        }).catch(() => {});
         continue;
       }
 
@@ -417,7 +425,7 @@ export async function executeWithRetry(
       case 'network_error': {
         exhaustedKeys.add(key.id);
         void markKeyUsed(key.id).catch(() => {});
-        void logRequest({
+        void logRequestInternal({
           apiKeyId: key.id,
           model: request.model,
           statusCode: result.type === 'server_error' ? result.status : 502,

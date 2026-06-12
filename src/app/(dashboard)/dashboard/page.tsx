@@ -1,12 +1,14 @@
-import { getRequestStats } from '@/lib/supabase/operations/request-logs';
+import { getRequestStats, getRecentLogs } from '@/lib/supabase/operations/request-logs';
 import type { DashboardStats } from '@/lib/types';
 import StatsCard from '@/components/StatsCard';
 import RefreshButton from '@/components/RefreshButton';
+import RequestLogTable from '@/components/RequestLogTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const stats: DashboardStats = await getRequestStats();
+  const recentLogs = await getRecentLogs(20);
 
   return (
     <div className="space-y-6">
@@ -49,6 +51,14 @@ export default async function DashboardPage() {
           color="emerald"
         />
       </div>
+
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-base font-semibold text-[var(--text)]">Recent Requests</h3>
+          <p className="text-xs text-[var(--muted)] mt-1">Last 20 API calls</p>
+        </div>
+        <RequestLogTable logs={recentLogs} />
+      </section>
     </div>
   );
 }
