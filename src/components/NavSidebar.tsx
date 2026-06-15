@@ -230,54 +230,61 @@ export default function NavSidebar() {
         })}
       </nav>
 
-      {user && (
-        <div className="shrink-0 border-t border-[var(--border)] p-3">
-          <div className="flex items-center gap-3 max-lg:justify-center">
-            <div
-              className="
-                shrink-0 w-8 h-8 rounded-full
-                bg-[var(--accent)]/15 text-[var(--accent)]
-                flex items-center justify-center
-                text-sm font-semibold
-              "
-              aria-hidden="true"
-            >
-              {user.display_name.charAt(0).toUpperCase()}
-            </div>
+      <div className="shrink-0 border-t border-[var(--border)] p-3">
+        <div className="flex items-center gap-3 max-lg:justify-center">
+          {user ? (
+            <>
+              <div
+                className="
+                  shrink-0 w-8 h-8 rounded-full
+                  bg-[var(--accent)]/15 text-[var(--accent)]
+                  flex items-center justify-center
+                  text-sm font-semibold
+                "
+                aria-hidden="true"
+              >
+                {user.display_name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 max-lg:hidden">
+                <p className="text-sm font-medium text-[var(--text)] truncate">
+                  {user.display_name}
+                </p>
+                <p className="text-xs text-[var(--muted)] truncate">
+                  {user.email}
+                </p>
+              </div>
+            </>
+          ) : (
             <div className="min-w-0 max-lg:hidden">
-              <p className="text-sm font-medium text-[var(--text)] truncate">
-                {user.display_name}
-              </p>
-              <p className="text-xs text-[var(--muted)] truncate">
-                {user.email}
-              </p>
+              <p className="text-xs text-[var(--muted)]">Memuat...</p>
             </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              disabled={loggingOut}
-              className="
-                shrink-0 p-1.5 rounded-lg
-                text-[var(--muted)]
-                hover:text-red-400 hover:bg-red-500/10
-                transition-colors duration-150 ease-out
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
-              aria-label="Logout"
-              title="Logout"
-            >
-              {loggingOut ? (
-                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <LogoutIcon />
-              )}
-            </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="
+              shrink-0 p-1.5 rounded-lg
+              text-[var(--muted)]
+              hover:text-red-400 hover:bg-red-500/10
+              transition-colors duration-150 ease-out
+              disabled:opacity-50 disabled:cursor-not-allowed
+              ml-auto
+            "
+            aria-label="Logout"
+            title="Logout"
+          >
+            {loggingOut ? (
+              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <LogoutIcon />
+            )}
+          </button>
         </div>
-      )}
+      </div>
     </aside>
   );
 }
