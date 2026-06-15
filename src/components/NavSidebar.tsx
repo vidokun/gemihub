@@ -262,12 +262,18 @@ export default function NavSidebar() {
                 hover:text-red-400 hover:bg-red-500/10
                 transition-colors duration-150 ease-out
                 disabled:opacity-50 disabled:cursor-not-allowed
-                max-lg:hidden
               "
               aria-label="Logout"
               title="Logout"
             >
-              <LogoutIcon />
+              {loggingOut ? (
+                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <LogoutIcon />
+              )}
             </button>
           </div>
         </div>
