@@ -68,7 +68,7 @@ export default function RequestLogTable({ logs }: RequestLogTableProps) {
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Time
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               API Key
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
@@ -77,10 +77,10 @@ export default function RequestLogTable({ logs }: RequestLogTableProps) {
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Tokens In
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Tokens Out
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
@@ -98,7 +98,7 @@ export default function RequestLogTable({ logs }: RequestLogTableProps) {
                 {formatTime(log.timestamp)}
               </td>
 
-              <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+              <td className="hidden md:table-cell px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
                 {log.api_key_id !== null ? `#${log.api_key_id}` : '\u2014'}
               </td>
 
@@ -106,23 +106,23 @@ export default function RequestLogTable({ logs }: RequestLogTableProps) {
                 {log.model ?? '\u2014'}
               </td>
 
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {statusBadge(log.status_code)}
               </td>
 
-              <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+              <td className="hidden md:table-cell px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
                 {tokenDisplay(log.prompt_tokens)}
               </td>
 
-              <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+              <td className="hidden md:table-cell px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
                 {tokenDisplay(log.completion_tokens)}
               </td>
 
-              <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+              <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums whitespace-nowrap">
                 {log.latency_ms !== null ? `${log.latency_ms} ms` : '\u2014'}
               </td>
 
-              <td className="px-4 py-3 text-sm text-[var(--muted)] max-w-[240px]">
+              <td className="px-4 py-3 text-sm text-[var(--muted)] max-w-[160px] sm:max-w-[240px]">
                 {log.error_message ? (
                   <span
                     title={log.error_message}

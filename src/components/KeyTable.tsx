@@ -153,12 +153,12 @@ function KeyRow({
         </div>
       </td>
 
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 whitespace-nowrap">
         <span
           className={`
             inline-flex items-center gap-1.5
             px-2.5 py-0.5 rounded-full
-            text-xs font-medium
+            text-xs font-medium whitespace-nowrap
             ${
               apiKey.is_active
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
@@ -176,15 +176,15 @@ function KeyRow({
         </span>
       </td>
 
-      <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+      <td className="hidden sm:table-cell px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
         {usageCount}
       </td>
 
-      <td className="px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
+      <td className="hidden sm:table-cell px-4 py-3 text-sm text-[var(--muted)] tabular-nums">
         {apiKey.error_count}
       </td>
 
-      <td className="px-4 py-3 text-sm text-[var(--muted)]">
+      <td className="hidden sm:table-cell px-4 py-3 text-sm text-[var(--muted)]">
         {formatDate(apiKey.created_at)}
       </td>
 
@@ -262,22 +262,22 @@ export default function KeyTable({ keys, usageCounts, loadingIds, onToggle, onDe
       <table className="w-full">
         <thead>
           <tr className="bg-[var(--bg)]">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider min-w-[100px]">
               Name
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider min-w-[140px]">
               Key String
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Uses
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Errors
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+            <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
               Created
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">

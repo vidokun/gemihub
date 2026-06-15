@@ -29,7 +29,7 @@ export default function LoginPage() {
           bg-[var(--card)]
           border border-[var(--border)]
           rounded-xl
-          px-8 py-10
+          px-5 py-8 sm:px-8 sm:py-10 mx-0 sm:mx-auto
         "
       >
         <div className="flex flex-col items-center mb-8">

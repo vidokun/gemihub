@@ -16,6 +16,11 @@ interface CurrentUser {
   role: string;
 }
 
+interface NavSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
 const DashboardIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +142,7 @@ const navItems: NavItem[] = [
   { href: '/settings', label: 'Settings', icon: <SettingsIcon /> },
 ];
 
-export default function NavSidebar() {
+export default function NavSidebar({ isOpen, onClose }: NavSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -167,20 +172,22 @@ export default function NavSidebar() {
     }
   }
 
-  return (
+  function handleNavClick() {
+    onClose?.();
+  }
+
+  const sidebarContent = (
     <aside
-      className="
+      className={`
         flex flex-col shrink-0
-        w-56 lg:w-56
-        max-lg:w-16
-        h-screen
+        w-56
+        h-full
         bg-[var(--card)]
         border-r border-[var(--border)]
         overflow-y-auto overflow-x-hidden
-        transition-[width] duration-200 ease-out-quint
-      "
+      `}
     >
-      <div className="flex items-center gap-3 h-14 shrink-0 px-4 border-b border-[var(--border)]">
+      <div className="flex items-center justify-between h-14 shrink-0 px-3 border-b border-[var(--border)] lg:hidden">
         <span className="text-[var(--accent)] shrink-0" aria-hidden="true">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -196,7 +203,36 @@ export default function NavSidebar() {
             <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
           </svg>
         </span>
-        <span className="text-[var(--text)] font-semibold text-base truncate max-lg:hidden">
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1.5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--border)] transition-colors"
+          aria-label="Close sidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="hidden lg:flex items-center gap-3 h-14 shrink-0 px-4 border-b border-[var(--border)]">
+        <span className="text-[var(--accent)] shrink-0" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </svg>
+        </span>
+        <span className="text-[var(--text)] font-semibold text-base truncate">
           GemiHub
         </span>
       </div>
@@ -209,6 +245,7 @@ export default function NavSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={handleNavClick}
               className={`
                 group flex items-center gap-3
                 h-10 px-3 rounded-lg
@@ -224,14 +261,14 @@ export default function NavSidebar() {
               <span className="shrink-0" aria-hidden="true">
                 {item.icon}
               </span>
-              <span className="truncate max-lg:hidden">{item.label}</span>
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
       <div className="shrink-0 border-t border-[var(--border)] p-3">
-        <div className="flex items-center gap-3 max-lg:justify-center">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
               <div
@@ -245,7 +282,7 @@ export default function NavSidebar() {
               >
                 {user.display_name.charAt(0).toUpperCase()}
               </div>
-              <div className="min-w-0 max-lg:hidden">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-[var(--text)] truncate">
                   {user.display_name}
                 </p>
@@ -255,7 +292,7 @@ export default function NavSidebar() {
               </div>
             </>
           ) : (
-            <div className="min-w-0 max-lg:hidden">
+            <div className="min-w-0">
               <p className="text-xs text-[var(--muted)]">Memuat...</p>
             </div>
           )}
@@ -286,5 +323,29 @@ export default function NavSidebar() {
         </div>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      <div className="hidden lg:block shrink-0 h-screen">{sidebarContent}</div>
+
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <div
+        className={`
+          lg:hidden fixed left-0 top-0 z-50 h-full w-56
+          transition-all duration-200 ease-out
+          ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full shadow-none'}
+        `}
+      >
+        {sidebarContent}
+      </div>
+    </>
   );
 }

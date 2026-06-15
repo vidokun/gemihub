@@ -232,7 +232,7 @@ export default function SettingsPage() {
           Allowed Models
         </h2>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
           <input
             type="text"
             value={newModel}
@@ -398,7 +398,7 @@ export default function SettingsPage() {
             value={defaultModel}
             onChange={(e) => setDefaultModelState(e.target.value)}
             className="
-              w-full max-w-xs h-10 px-3.5 rounded-lg
+              w-full sm:max-w-xs h-10 px-3.5 rounded-lg
               bg-[var(--bg)]
               border border-[var(--border)]
               text-[var(--text)] text-sm

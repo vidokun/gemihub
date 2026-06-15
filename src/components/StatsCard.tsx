@@ -42,7 +42,7 @@ export default function StatsCard({ label, value, color }: StatsCardProps) {
           {label}
         </p>
         <p
-          className="text-[2rem] leading-none font-bold tabular-nums tracking-tight"
+          className="text-2xl sm:text-3xl lg:text-[2rem] leading-none font-bold tabular-nums tracking-tight"
           style={{ color: accentColor }}
         >
           {value.toLocaleString()}
