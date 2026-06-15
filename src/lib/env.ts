@@ -6,12 +6,16 @@ function required(name: string): string {
   return value;
 }
 
+function optional(name: string): string {
+  return process.env[name] ?? '';
+}
+
 // Use getters so validation happens at runtime, not build time.
 // Vercel env vars are not available during the build step.
 export const env = {
   get SUPABASE_URL() { return required('NEXT_PUBLIC_SUPABASE_URL'); },
   get SUPABASE_ANON_KEY() { return required('NEXT_PUBLIC_SUPABASE_ANON_KEY'); },
   get SUPABASE_SERVICE_ROLE_KEY() { return required('SUPABASE_SERVICE_ROLE_KEY'); },
-  get ADMIN_PASSCODE() { return required('ADMIN_PASSCODE'); },
+  get ADMIN_PASSCODE() { return optional('ADMIN_PASSCODE'); },
   get MASTER_AUTH_TOKEN() { return required('MASTER_AUTH_TOKEN'); },
 };
