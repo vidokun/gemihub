@@ -10,8 +10,6 @@ export async function logRequestInternal(data: {
   model: string;
   statusCode: number;
   tokensUsed: number;
-  promptTokens?: number;
-  completionTokens?: number;
   latencyMs: number;
   errorMessage?: string;
   requestIp?: string;
@@ -23,8 +21,6 @@ export async function logRequestInternal(data: {
       model: data.model,
       status_code: data.statusCode,
       tokens_used: data.tokensUsed,
-      prompt_tokens: data.promptTokens ?? 0,
-      completion_tokens: data.completionTokens ?? 0,
       latency_ms: data.latencyMs,
       error_message: data.errorMessage ?? null,
       request_ip: data.requestIp ?? null,
@@ -32,9 +28,15 @@ export async function logRequestInternal(data: {
     });
 
     if (error) {
-      console.error('Error logging request (internal):', error);
+      console.error(
+        `[request-logs] Supabase insert failed for key ${data.apiKeyId}: ${error.message}`,
+        error,
+      );
     }
   } catch (err) {
-    console.error('Exception logging request (internal):', err);
+    console.error(
+      `[request-logs] Exception for key ${data.apiKeyId}:`,
+      err instanceof Error ? err.message : err,
+    );
   }
 }

@@ -17,8 +17,6 @@ CREATE TABLE IF NOT EXISTS request_logs (
   model TEXT,
   status_code INTEGER,
   tokens_used INTEGER,
-  prompt_tokens INTEGER DEFAULT 0,
-  completion_tokens INTEGER DEFAULT 0,
   latency_ms INTEGER,
   error_message TEXT,
   request_ip TEXT
