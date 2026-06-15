@@ -2,9 +2,11 @@
 
 import type { RequestLog } from '@/lib/types';
 import TokenChart from './TokenChart';
+import Skeleton from './Skeleton';
 
 interface OverviewTabProps {
   logs: RequestLog[];
+  loading?: boolean;
 }
 
 function relativeTime(iso: string): string {
@@ -18,7 +20,40 @@ function relativeTime(iso: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export default function OverviewTab({ logs }: OverviewTabProps) {
+export default function OverviewTab({ logs, loading = false }: OverviewTabProps) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <p className="text-xs font-medium tracking-wider text-[var(--muted)] uppercase mb-3">
+            Token Usage Over Time
+          </p>
+          <TokenChart logs={[]} loading />
+        </div>
+
+        <div>
+          <p className="text-xs font-medium tracking-wider text-[var(--muted)] uppercase mb-3">
+            Recent Requests
+          </p>
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
+            <div className="divide-y divide-[var(--border)]">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="px-4 py-3 space-y-2">
+                  <Skeleton className="h-4 w-3/5" />
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-3 w-12" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">

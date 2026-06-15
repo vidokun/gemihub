@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 import type { RequestLog } from '@/lib/types';
+import Skeleton from './Skeleton';
 
 interface TokenChartProps {
   logs: RequestLog[];
+  loading?: boolean;
 }
 
 function abbreviateNumber(n: number): string {
@@ -41,11 +43,14 @@ function smoothCeil(n: number): number {
   return nice * mag;
 }
 
-export default function TokenChart({ logs }: TokenChartProps) {
+export default function TokenChart({ logs, loading = false }: TokenChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (loading) return;
+    if (logs.length === 0) return;
+
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -66,7 +71,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
       canvas!.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Padding
       const padLeft = 60;
       const padRight = 20;
       const padTop = 30;
@@ -75,11 +79,9 @@ export default function TokenChart({ logs }: TokenChartProps) {
       const chartW = w - padLeft - padRight;
       const chartH = h - padTop - padBottom;
 
-      // Background
       ctx.fillStyle = getComputedStyle(container!).getPropertyValue('--bg').trim() || '#0a0a0b';
       ctx.fillRect(0, 0, w, h);
 
-      // Empty state
       if (logs.length === 0) {
         const muted = getComputedStyle(container!).getPropertyValue('--muted').trim() || '#71717a';
         ctx.fillStyle = muted;
@@ -90,7 +92,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         return;
       }
 
-      // Sort by timestamp
       const sorted = [...logs].sort((a, b) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       );
@@ -99,7 +100,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
       const lastTime = new Date(sorted[sorted.length - 1].timestamp).getTime();
       const timeSpan = lastTime - firstTime || 1;
 
-      // Find max token value
       let maxVal = 0;
       for (const log of sorted) {
         const v = Math.max(log.prompt_tokens ?? 0, log.completion_tokens ?? 0);
@@ -117,7 +117,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         return padTop + chartH - (v / maxVal) * chartH;
       };
 
-      // --- Grid lines ---
       const borderColor = getComputedStyle(container!).getPropertyValue('--border').trim() || '#1f1f24';
       const mutedColor = getComputedStyle(container!).getPropertyValue('--muted').trim() || '#71717a';
 
@@ -131,7 +130,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         ctx.lineTo(padLeft + chartW, y);
         ctx.stroke();
 
-        // Y-axis labels
         const val = Math.round(maxVal - (maxVal / gridLines) * i);
         ctx.fillStyle = mutedColor;
         ctx.font = '11px system-ui, -apple-system, sans-serif';
@@ -140,7 +138,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         ctx.fillText(abbreviateNumber(val), padLeft - 8, y);
       }
 
-      // --- X-axis labels ---
       const xLabelCount = 6;
       for (let i = 0; i <= xLabelCount; i++) {
         const ratio = i / xLabelCount;
@@ -155,7 +152,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         ctx.textBaseline = 'top';
         ctx.fillText(label, x, padTop + chartH + 8);
 
-        // Tick mark
         ctx.strokeStyle = borderColor;
         ctx.beginPath();
         ctx.moveTo(x, padTop + chartH);
@@ -163,8 +159,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
         ctx.stroke();
       }
 
-      // --- Area fills ---
-      // Input tokens area (amber)
       ctx.beginPath();
       ctx.moveTo(padLeft, padTop + chartH);
       for (let i = 0; i < sorted.length; i++) {
@@ -177,7 +171,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
       ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
       ctx.fill();
 
-      // Output tokens area (emerald)
       ctx.beginPath();
       ctx.moveTo(padLeft, padTop + chartH);
       for (let i = 0; i < sorted.length; i++) {
@@ -190,7 +183,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
       ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
       ctx.fill();
 
-      // --- Lines ---
       function drawLine(c: CanvasRenderingContext2D, data: (log: RequestLog) => number, color: string, width: number) {
         c.beginPath();
         let started = false;
@@ -214,12 +206,10 @@ export default function TokenChart({ logs }: TokenChartProps) {
       drawLine(ctx, (l) => l.prompt_tokens ?? 0, '#f59e0b', 2);
       drawLine(ctx, (l) => l.completion_tokens ?? 0, '#10b981', 2);
 
-      // --- Legend ---
       const legendX = padLeft + chartW - 200;
       const legendY = padTop - 18;
       const dotRadius = 4;
 
-      // Input Tokens
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
       ctx.arc(legendX, legendY, dotRadius, 0, Math.PI * 2);
@@ -230,7 +220,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
       ctx.textBaseline = 'middle';
       ctx.fillText('Input Tokens', legendX + 10, legendY);
 
-      // Output Tokens
       ctx.fillStyle = '#10b981';
       ctx.beginPath();
       ctx.arc(legendX + 100, legendY, dotRadius, 0, Math.PI * 2);
@@ -241,7 +230,6 @@ export default function TokenChart({ logs }: TokenChartProps) {
 
     draw();
 
-    // ResizeObserver
     const ro = new ResizeObserver(() => {
       if (frameId) cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(draw);
@@ -252,14 +240,18 @@ export default function TokenChart({ logs }: TokenChartProps) {
       ro.disconnect();
       if (frameId) cancelAnimationFrame(frameId);
     };
-  }, [logs]);
+  }, [logs, loading]);
 
   return (
     <div
       ref={containerRef}
       className="bg-[var(--bg)] border border-[var(--border)] rounded-xl overflow-hidden"
     >
-      <canvas ref={canvasRef} className="w-full block" />
+      {loading ? (
+        <Skeleton className="w-full h-[320px] rounded-none" />
+      ) : (
+        <canvas ref={canvasRef} className="w-full block" />
+      )}
     </div>
   );
 }

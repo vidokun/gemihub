@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import type { RequestLog } from '@/lib/types';
 import RequestDetailModal from './RequestDetailModal';
+import Skeleton from './Skeleton';
 
 interface DetailsTabProps {
   logs: RequestLog[];
+  loading?: boolean;
 }
 
 function formatTime(iso: string): string {
@@ -17,7 +19,7 @@ function statusBadge(statusCode: number | null) {
 
   let bg = '';
   let text = '';
-  let label = String(statusCode);
+  const label = String(statusCode);
 
   if (statusCode >= 200 && statusCode < 300) {
     bg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
@@ -40,7 +42,22 @@ function statusBadge(statusCode: number | null) {
   );
 }
 
-export default function DetailsTab({ logs }: DetailsTabProps) {
+function SkeletonRow() {
+  return (
+    <tr>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-36" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-12" /></td>
+      <td className="px-4 py-3"><Skeleton className="h-4 w-14" /></td>
+    </tr>
+  );
+}
+
+export default function DetailsTab({ logs, loading = false }: DetailsTabProps) {
   const [selectedLog, setSelectedLog] = useState<RequestLog | null>(null);
   const [filterModel, setFilterModel] = useState('');
   const [filterStart, setFilterStart] = useState('');
@@ -155,7 +172,45 @@ export default function DetailsTab({ logs }: DetailsTabProps) {
         </button>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[var(--bg)]">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Timestamp
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Model
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Provider
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Input Tokens
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Output Tokens
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Latency
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <SkeletonRow key={i} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4">
           <p className="text-sm text-[var(--muted)]">No requests match your filters.</p>
           <p className="text-xs text-[var(--muted)] mt-1 opacity-60">

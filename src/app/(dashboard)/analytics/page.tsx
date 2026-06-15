@@ -4,52 +4,16 @@ import AnalyticsPageClient from './client';
 
 export const dynamic = 'force-dynamic';
 
-function computeRange(range: string): { from: Date; to: Date } {
+export default async function AnalyticsPage() {
   const now = new Date();
-  const to = now;
-
-  switch (range.toLowerCase()) {
-    case 'today': {
-      const from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      return { from, to };
-    }
-    case '24h': {
-      const from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      return { from, to };
-    }
-    case '7d': {
-      const from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return { from, to };
-    }
-    case '60d': {
-      const from = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-      return { from, to };
-    }
-    case '30d':
-    default: {
-      const from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return { from, to };
-    }
-  }
-}
-
-export default async function AnalyticsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string; range?: string }>;
-}) {
-  const params = await searchParams;
-  const tab = params.tab === 'details' ? 'details' : 'overview';
-  const range = params.range ?? '30D';
-
-  const { from, to } = computeRange(range);
+  const from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   let stats: { totalRequests: number; tokensIn: number; tokensOut: number };
   let logs: RequestLog[];
 
   try {
-    stats = await getFilteredStats(from, to);
-    logs = await getFilteredLogs(from, to, 200);
+    stats = await getFilteredStats(from, now);
+    logs = await getFilteredLogs(from, now, 200);
   } catch {
     stats = { totalRequests: 0, tokensIn: 0, tokensOut: 0 };
     logs = [];
@@ -57,12 +21,10 @@ export default async function AnalyticsPage({
 
   return (
     <AnalyticsPageClient
-      initialTab={tab}
-      initialRange={range}
-      totalRequests={stats.totalRequests}
-      tokensIn={stats.tokensIn}
-      tokensOut={stats.tokensOut}
-      logs={logs}
+      initialTab="overview"
+      initialRange="30D"
+      initialStats={stats}
+      initialLogs={logs}
     />
   );
 }

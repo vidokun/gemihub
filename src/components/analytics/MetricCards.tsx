@@ -1,16 +1,30 @@
 'use client';
 
+import Skeleton from './Skeleton';
+
 interface MetricCardsProps {
   totalRequests: number;
   tokensIn: number;
   tokensOut: number;
+  loading?: boolean;
 }
 
 export default function MetricCards({
   totalRequests,
   tokensIn,
   tokensOut,
+  loading = false,
 }: MetricCardsProps) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+        <Skeleton variant="card" />
+        <Skeleton variant="card" />
+        <Skeleton variant="card" />
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">

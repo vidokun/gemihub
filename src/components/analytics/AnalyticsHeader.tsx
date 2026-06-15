@@ -1,6 +1,11 @@
 'use client';
 
-export default function AnalyticsHeader() {
+interface AnalyticsHeaderProps {
+  onRefresh: () => void;
+  refreshing?: boolean;
+}
+
+export default function AnalyticsHeader({ onRefresh, refreshing = false }: AnalyticsHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -13,6 +18,37 @@ export default function AnalyticsHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={refreshing}
+          aria-label="Refresh data"
+          className="
+            flex items-center justify-center
+            w-8 h-8 rounded-lg
+            text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--border)]
+            transition-colors duration-150 ease-out
+            disabled:opacity-50
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={refreshing ? 'animate-spin' : ''}
+          >
+            <polyline points="23 4 23 10 17 10" />
+            <polyline points="1 20 1 14 7 14" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
+
         <button
           type="button"
           className="
