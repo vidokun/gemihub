@@ -101,3 +101,56 @@ export async function getRecentLogs(limit: number = 50): Promise<RequestLog[]> {
 
   return (data ?? []) as RequestLog[];
 }
+
+export async function getFilteredStats(
+  from: Date,
+  to: Date,
+): Promise<{ totalRequests: number; tokensIn: number; tokensOut: number }> {
+  const supabase = createAdminClient();
+
+  const fromISO = from.toISOString();
+  const toISO = to.toISOString();
+
+  const [countResult, tokensResult] = await Promise.all([
+    supabase
+      .from('request_logs')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', fromISO)
+      .lte('timestamp', toISO),
+    supabase
+      .from('request_logs')
+      .select('prompt_tokens, completion_tokens')
+      .gte('timestamp', fromISO)
+      .lte('timestamp', toISO),
+  ]);
+
+  const totalRequests = countResult.count ?? 0;
+  const rows = tokensResult.data ?? [];
+  const tokensIn = rows.reduce((sum, row) => sum + (row.prompt_tokens ?? 0), 0);
+  const tokensOut = rows.reduce((sum, row) => sum + (row.completion_tokens ?? 0), 0);
+
+  return { totalRequests, tokensIn, tokensOut };
+}
+
+export async function getFilteredLogs(
+  from: Date,
+  to: Date,
+  limit: number = 50,
+): Promise<RequestLog[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('request_logs')
+    .select('*')
+    .gte('timestamp', from.toISOString())
+    .lte('timestamp', to.toISOString())
+    .order('timestamp', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching filtered logs:', error);
+    throw new Error('Failed to fetch filtered logs');
+  }
+
+  return (data ?? []) as RequestLog[];
+}

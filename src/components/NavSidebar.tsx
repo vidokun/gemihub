@@ -68,8 +68,26 @@ const SettingsIcon = () => (
   </svg>
 );
 
+const AnalyticsIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 3v18h18" />
+    <path d="M7 16l4-8 4 4 4-6" />
+  </svg>
+);
+
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+  { href: '/analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
   { href: '/keys', label: 'API Keys', icon: <KeysIcon /> },
   { href: '/settings', label: 'Settings', icon: <SettingsIcon /> },
 ];
