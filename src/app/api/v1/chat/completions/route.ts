@@ -1,6 +1,6 @@
 import { validateBearerToken, unauthorizedResponse } from '@/lib/auth/api-auth';
 import { executeWithRetry } from '@/lib/gemini/retry';
-import { getAllowedModels } from '@/lib/supabase/operations/settings';
+import { getAllowedModels, getDefaultModel } from '@/lib/supabase/operations/settings';
 import type { GeminiRequest } from '@/lib/types';
 
 export async function OPTIONS(): Promise<Response> {
@@ -56,6 +56,16 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     // Settings table might not exist yet — allow all models
   }
+
+  // If no model specified, use the configured default
+  if (!body.model) {
+    try {
+      body.model = await getDefaultModel();
+    } catch {
+      body.model = 'gemini-2.5-flash';
+    }
+  }
+
   if (allowedModels.length > 0 && !allowedModels.includes(body.model)) {
     return new Response(
       JSON.stringify({
