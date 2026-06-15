@@ -15,7 +15,6 @@ interface AnalyticsPageClientProps {
   totalRequests: number;
   tokensIn: number;
   tokensOut: number;
-  estCost: number;
   logs: RequestLog[];
 }
 
@@ -25,7 +24,6 @@ export default function AnalyticsPageClient({
   totalRequests,
   tokensIn,
   tokensOut,
-  estCost,
   logs,
 }: AnalyticsPageClientProps) {
   const router = useRouter();
@@ -69,7 +67,6 @@ export default function AnalyticsPageClient({
         totalRequests={totalRequests}
         tokensIn={tokensIn}
         tokensOut={tokensOut}
-        estCost={estCost}
       />
 
       {tab === 'overview' ? (

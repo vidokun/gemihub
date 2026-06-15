@@ -1,5 +1,4 @@
 import { getFilteredStats, getFilteredLogs } from '@/lib/supabase/operations/request-logs';
-import { estimateCost } from '@/lib/analytics/cost';
 import type { RequestLog } from '@/lib/types';
 import AnalyticsPageClient from './client';
 
@@ -56,8 +55,6 @@ export default async function AnalyticsPage({
     logs = [];
   }
 
-  const estCost = estimateCost(stats.tokensIn, stats.tokensOut);
-
   return (
     <AnalyticsPageClient
       initialTab={tab}
@@ -65,7 +62,6 @@ export default async function AnalyticsPage({
       totalRequests={stats.totalRequests}
       tokensIn={stats.tokensIn}
       tokensOut={stats.tokensOut}
-      estCost={estCost}
       logs={logs}
     />
   );

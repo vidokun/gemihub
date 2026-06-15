@@ -1,7 +1,7 @@
 'use client';
 
 import type { RequestLog } from '@/lib/types';
-import NetworkGraph from './NetworkGraph';
+import TokenChart from './TokenChart';
 
 interface OverviewTabProps {
   logs: RequestLog[];
@@ -23,9 +23,9 @@ export default function OverviewTab({ logs }: OverviewTabProps) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
         <p className="text-xs font-medium tracking-wider text-[var(--muted)] uppercase mb-3">
-          Network Topology
+          Token Usage Over Time
         </p>
-        <NetworkGraph />
+        <TokenChart logs={logs} />
       </div>
 
       <div>
