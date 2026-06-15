@@ -1002,7 +1002,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 3 group) | Files: `src/lib/gemini/proxy.ts` (updated)
 
-- [ ] 16. **LRU Load Balancer**
+- [x] 16. **LRU Load Balancer (LRU Strategy)**
 
   **What to do**:
   - Create `src/lib/gemini/load-balancer.ts` with thread-safe LRU strategy:
@@ -1031,7 +1031,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 3 group) | Files: `src/lib/gemini/load-balancer.ts`
 
-- [ ] 17. **429 Retry & Key Rotation**
+- [x] 17. **429 Retry & Key Rotation**
 
   **What to do**:
   - Create `src/lib/gemini/retry.ts` with `executeWithRetry(request: GeminiRequest): Promise<Response>`
@@ -1071,7 +1071,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 3 group) | Files: `src/lib/gemini/retry.ts`
 
-- [ ] 18. **API Route Handler — /api/v1/chat/completions**
+- [x] 18. **API Route Handler — /api/v1/chat/completions**
 
   **What to do**:
   - Create `src/app/api/v1/chat/completions/route.ts` with Edge Runtime
@@ -1111,7 +1111,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 3 group) | Files: `src/app/api/v1/chat/completions/route.ts`
 
-- [ ] 19. **Dashboard Stats Page**
+- [x] 19. **Dashboard Stats Page**
 
   **What to do**:
   - Create `src/app/(dashboard)/dashboard/page.tsx` (server component) + `src/components/StatsCard.tsx`
@@ -1130,7 +1130,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 4 group) | Files: `src/app/(dashboard)/dashboard/page.tsx`, `src/components/StatsCard.tsx`
 
-- [ ] 20. **Key Management CRUD Page**
+- [x] 20. **Key Management CRUD Page**
 
   **What to do**:
   - Create `src/app/(dashboard)/keys/page.tsx` (client component) + `src/components/KeyTable.tsx` + `src/components/KeyForm.tsx`
@@ -1152,7 +1152,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 4 group) | Files: `src/app/(dashboard)/keys/page.tsx`, `src/components/KeyTable.tsx`, `src/components/KeyForm.tsx`
 
-- [ ] 21. **Deployment Guide**
+- [x] 21. **Deployment Guide**
 
   **What to do**:
   - Create `DEPLOYMENT.md` with Supabase setup (7 steps: account → project → keys → SQL Editor → paste schema → run → get service_role key) + Vercel deploy (6 steps: push → import → configure → env vars → deploy → verify)
@@ -1167,7 +1167,7 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
   **Commit**: YES (Wave 4 group) | Files: `DEPLOYMENT.md`
 
-- [ ] 22. **README.md**
+- [x] 22. **README.md**
 
   **What to do**:
   - Create `README.md`: title + tagline, features, quick start, env reference table, API curl examples, architecture ASCII diagram, project structure tree, link to DEPLOYMENT.md, MIT license
@@ -1183,20 +1183,20 @@ Wave FINAL (After ALL tasks — 4 parallel reviews):
 
 ---
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `npx tsc --noEmit` + `npx next lint`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp).
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
   Start from clean state. Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (login → dashboard → manage keys). Test edge cases: empty key pool, all keys disabled, invalid passcode, missing auth header.
   Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 

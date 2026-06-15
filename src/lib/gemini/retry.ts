@@ -356,6 +356,8 @@ export async function executeWithRetry(
         const openAI = convertToOpenAIFormat(result.geminiResponse, request.model);
         const metadata = result.geminiResponse.usageMetadata;
         const tokensUsed = metadata?.totalTokenCount ?? 0;
+        const promptTokens = metadata?.promptTokenCount ?? 0;
+        const completionTokens = metadata?.candidatesTokenCount ?? 0;
 
         // Await logging + key-mark so errors surface in Vercel logs.
         // If either fails we still return the response.
@@ -366,6 +368,8 @@ export async function executeWithRetry(
             model: request.model,
             statusCode: 200,
             tokensUsed,
+            promptTokens,
+            completionTokens,
             latencyMs: result.latencyMs,
           });
         } catch (err) {

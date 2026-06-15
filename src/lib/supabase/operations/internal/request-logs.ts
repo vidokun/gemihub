@@ -10,6 +10,8 @@ export async function logRequestInternal(data: {
   model: string;
   statusCode: number;
   tokensUsed: number;
+  promptTokens?: number;
+  completionTokens?: number;
   latencyMs: number;
   errorMessage?: string;
   requestIp?: string;
@@ -21,6 +23,8 @@ export async function logRequestInternal(data: {
       model: data.model,
       status_code: data.statusCode,
       tokens_used: data.tokensUsed,
+      prompt_tokens: data.promptTokens ?? 0,
+      completion_tokens: data.completionTokens ?? 0,
       latency_ms: data.latencyMs,
       error_message: data.errorMessage ?? null,
       request_ip: data.requestIp ?? null,
