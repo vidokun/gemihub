@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server';
-import { validatePasscode, createSessionToken, setAuthCookie } from '@/lib/auth/dashboard-auth';
+import { authenticateUser } from '@/lib/auth/users';
+import { setAuthCookie } from '@/lib/auth/dashboard-auth';
 
 export async function POST(request: Request) {
-  const { passcode } = await request.json();
+  const { email, password } = await request.json();
 
-  if (!validatePasscode(passcode)) {
-    return NextResponse.json({ error: 'Invalid passcode' }, { status: 401 });
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: 'Email and password are required' },
+      { status: 400 }
+    );
   }
 
-  const token = createSessionToken();
-  await setAuthCookie(token);
+  const result = await authenticateUser(email, password);
 
-  return NextResponse.json({ success: true });
+  if (!result) {
+    return NextResponse.json(
+      { error: 'Invalid email or password' },
+      { status: 401 }
+    );
+  }
+
+  await setAuthCookie(result.token);
+
+  return NextResponse.json({
+    success: true,
+    user: {
+      display_name: result.user.display_name,
+      email: result.user.email,
+      role: result.user.role,
+    },
+  });
 }

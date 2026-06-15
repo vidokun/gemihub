@@ -53,6 +53,32 @@ export interface GeminiResponse {
   };
 }
 
+export interface User {
+  id: number;
+  email: string;
+  display_name: string;
+  password_hash: string;
+  role: 'admin' | 'user';
+  created_at: string;
+}
+
+export interface UserSession {
+  id: number;
+  user_id: number;
+  token: string;
+  created_at: string;
+}
+
+export type UserRole = 'admin' | 'user';
+
+export interface PublicUser {
+  id: number;
+  email: string;
+  display_name: string;
+  role: UserRole;
+  created_at: string;
+}
+
 export interface DashboardStats {
   activeKeys: number;
   rateLimitedKeys: number;

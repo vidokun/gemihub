@@ -1,6 +1,10 @@
 import { cookies } from 'next/headers';
 import { env } from '@/lib/env';
 
+/**
+ * @deprecated Use `authenticateUser()` from `@/lib/auth/users` instead.
+ * Kept for backward compatibility — some imports may still reference this.
+ */
 export function validatePasscode(passcode: string): boolean {
   return passcode === env.ADMIN_PASSCODE;
 }

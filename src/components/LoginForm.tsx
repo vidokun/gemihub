@@ -28,9 +28,14 @@ function Spinner() {
   );
 }
 
+function emailValid(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export default function LoginForm() {
   const router = useRouter();
-  const [passcode, setPasscode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -38,8 +43,14 @@ export default function LoginForm() {
     e.preventDefault();
     setError('');
 
-    if (!passcode.trim()) {
-      setError('Passcode is required');
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setError('Email and password are required');
+      return;
+    }
+
+    if (!emailValid(trimmedEmail)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -49,13 +60,13 @@ export default function LoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: passcode.trim() }),
+        body: JSON.stringify({ email: trimmedEmail, password }),
       });
 
       if (res.ok) {
         router.push('/dashboard');
       } else if (res.status === 401) {
-        setError('Invalid passcode');
+        setError('Invalid email or password');
       } else {
         setError('Something went wrong. Try again.');
       }
@@ -70,21 +81,53 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="w-full space-y-4">
       <div>
         <label
-          htmlFor="passcode"
+          htmlFor="email"
           className="block text-sm font-medium text-[var(--text)] mb-1.5"
         >
-          Passcode
+          Email
         </label>
         <input
-          id="passcode"
-          type="password"
-          value={passcode}
+          id="email"
+          type="email"
+          value={email}
           onChange={(e) => {
-            setPasscode(e.target.value);
+            setEmail(e.target.value);
             if (error) setError('');
           }}
-          placeholder="Enter your passcode"
+          placeholder="you@example.com"
+          autoComplete="email"
           autoFocus
+          disabled={loading}
+          className="
+            w-full h-11 px-3.5 rounded-lg
+            bg-[var(--bg)]
+            border border-[var(--border)]
+            text-[var(--text)] text-sm
+            placeholder:text-[var(--muted)]
+            outline-none
+            transition-colors duration-150 ease-out
+            focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30
+            disabled:opacity-50 disabled:cursor-not-allowed
+          "
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-[var(--text)] mb-1.5"
+        >
+          Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (error) setError('');
+          }}
+          placeholder="Your password"
           autoComplete="current-password"
           disabled={loading}
           className="
@@ -126,12 +169,13 @@ export default function LoginForm() {
         {loading ? (
           <>
             <Spinner />
-            <span>Authenticating</span>
+            <span>Signing in</span>
           </>
         ) : (
-          'Access Gateway'
+          'Sign In'
         )}
       </button>
     </form>
   );
 }
+

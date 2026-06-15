@@ -104,6 +104,62 @@ export interface Database {
         };
         Relationships: [];
       };
+      users: {
+        Row: {
+          id: number;
+          email: string;
+          password_hash: string;
+          display_name: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          email: string;
+          password_hash: string;
+          display_name: string;
+          role?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          email?: string;
+          password_hash?: string;
+          display_name?: string;
+          role?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      user_sessions: {
+        Row: {
+          id: number;
+          user_id: number;
+          token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: number;
+          token: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: number;
+          token?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_sessions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
