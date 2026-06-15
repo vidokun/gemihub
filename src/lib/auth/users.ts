@@ -97,16 +97,27 @@ export async function authenticateUser(
 ): Promise<{ user: PublicUser; token: string } | null> {
   const supabase = createAdminClient();
 
-  const { data: user } = await supabase
+  const { data: user, error } = await supabase
     .from('users')
     .select('*')
     .eq('email', email.toLowerCase().trim())
     .single();
 
-  if (!user) return null;
+  if (error) {
+    console.error('[auth] Failed to query users table:', error.message, error.code, error.hint);
+    return null;
+  }
+
+  if (!user) {
+    console.warn('[auth] No user found for email:', email.toLowerCase().trim());
+    return null;
+  }
 
   const valid = await verifyPassword(password, user.password_hash);
-  if (!valid) return null;
+  if (!valid) {
+    console.warn('[auth] Invalid password for:', email.toLowerCase().trim());
+    return null;
+  }
 
   const token = await createSession(user.id);
   return {

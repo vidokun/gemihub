@@ -22,7 +22,7 @@ function GemIcon() {
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-full">
+    <div className="fixed inset-0 flex items-center justify-center bg-[var(--bg)] px-4">
       <div
         className="
           w-full max-w-sm
