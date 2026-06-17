@@ -460,12 +460,20 @@ export async function executeWithRetry(
   return noKeysAvailableResponse();
 }
 
+const FALLBACK_MODELS = [
+  'gemini-3-flash-preview',
+  'gemini-3.5-flash',
+  'gemini-2.5-flash'
+];
+
 async function attemptWithBackoff(
   request: GeminiRequest,
   apiKey: string,
   keyId: number,
 ): Promise<TryResult> {
   let lastResult: TryResult | null = null;
+  // Clone request to allow safe mutation of model during fallback
+  let currentRequest = { ...request };
 
   for (let attempt = 0; attempt <= MAX_RETRIES_PER_KEY; attempt++) {
     if (attempt > 0) {
@@ -475,10 +483,23 @@ async function attemptWithBackoff(
       await sleep(jittered);
     }
 
-    const result = await tryWithKey(request, apiKey, keyId);
+    const result = await tryWithKey(currentRequest, apiKey, keyId);
 
     if (result.type === 'server_error' || result.type === 'network_error') {
       lastResult = result;
+      
+      // Auto-fallback model on 503 High Demand / Overloaded
+      const isHighDemand = 
+        result.type === 'server_error' && 
+        result.status === 503 && 
+        result.message.toLowerCase().includes('high demand');
+        
+      if (isHighDemand && attempt < FALLBACK_MODELS.length) {
+        // Switch to fallback model for the next attempt
+        const fallbackModel = FALLBACK_MODELS[attempt % FALLBACK_MODELS.length];
+        currentRequest = { ...currentRequest, model: fallbackModel };
+      }
+      
       continue;
     }
 
