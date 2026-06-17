@@ -119,10 +119,8 @@ function isRetryableServerError(status: number): boolean {
 
 function isHardClientError(status: number): boolean {
   return (
-    (status >= 400 && status < 500 && status !== 429) ||
     status === 400 ||
     status === 401 ||
-    status === 403 ||
     status === 404 ||
     status === 413
   );
