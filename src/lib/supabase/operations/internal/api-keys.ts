@@ -7,6 +7,7 @@ export async function getActiveKeysInternal(): Promise<ApiKey[]> {
     .from('api_keys')
     .select('*')
     .eq('is_active', true)
+    .or('rate_limited_until.is.null,rate_limited_until.lte.now()')
     .order('id');
 
   if (error) {
@@ -60,5 +61,25 @@ export async function toggleApiKeyInternal(keyId: number): Promise<void> {
 
   if (error) {
     throw new Error(`Failed to toggle API key: ${error.message}`);
+  }
+}
+
+export async function cooldownApiKeyInternal(keyId: number, minutes: number = 1): Promise<void> {
+  const supabase = createAdminClient();
+  
+  // Calculate cooldown time (current time + X minutes)
+  const cooldownUntil = new Date();
+  cooldownUntil.setMinutes(cooldownUntil.getMinutes() + minutes);
+  
+  const { error } = await supabase
+    .from('api_keys')
+    .update({ 
+      rate_limited_until: cooldownUntil.toISOString(),
+      last_used_at: new Date().toISOString()
+    })
+    .eq('id', keyId);
+
+  if (error) {
+    throw new Error(`Failed to cooldown API key: ${error.message}`);
   }
 }

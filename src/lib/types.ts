@@ -6,6 +6,7 @@ export interface ApiKey {
   error_count: number;
   created_at: string;
   last_used_at: string | null;
+  rate_limited_until: string | null;
 }
 
 export interface RequestLog {

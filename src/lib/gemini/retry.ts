@@ -1,6 +1,6 @@
 import { selectNextKey, markKeyUsed } from './load-balancer';
 import { GeminiProxyError, callGeminiNonStreaming } from './proxy';
-import { incrementErrorCountInternal, toggleApiKeyInternal } from '@/lib/supabase/operations/internal/api-keys';
+import { incrementErrorCountInternal, toggleApiKeyInternal, cooldownApiKeyInternal } from '@/lib/supabase/operations/internal/api-keys';
 import { logRequestInternal } from '@/lib/supabase/operations/internal/request-logs';
 import type { GeminiRequest, GeminiResponse } from '@/lib/types';
 
@@ -19,7 +19,7 @@ interface GeminiErrorBody {
 type TryResult =
   | { type: 'success'; geminiResponse: GeminiResponse; latencyMs: number }
   | { type: 'stream_success'; stream: ReadableStream; latencyMs: number }
-  | { type: 'rate_limited'; keyId: number; latencyMs: number }
+  | { type: 'rate_limited'; keyId: number; latencyMs: number; errorMessage?: string }
   | { type: 'server_error'; status: number; message: string; latencyMs: number }
   | { type: 'client_error'; status: number; message: string; latencyMs: number }
   | { type: 'network_error'; message: string; latencyMs: number };
@@ -241,7 +241,7 @@ async function tryWithKey(
           `Gemini API error: ${status}`;
 
         if (status === 429) {
-          return { type: 'rate_limited', keyId, latencyMs };
+          return { type: 'rate_limited', keyId, latencyMs, errorMessage: message };
         }
 
         if (isHardClientError(status)) {
@@ -293,7 +293,7 @@ async function tryWithKey(
         `Gemini API error: ${status} ${response.statusText}`;
 
       if (status === 429 || errorBody?.error?.status === 'RESOURCE_EXHAUSTED') {
-        return { type: 'rate_limited', keyId, latencyMs };
+        return { type: 'rate_limited', keyId, latencyMs, errorMessage: message };
       }
 
       if (isHardClientError(status)) {
@@ -406,8 +406,17 @@ export async function executeWithRetry(
       }
 
       case 'rate_limited': {
+        const errorMsgLower = result.errorMessage?.toLowerCase() || '';
+        let cooldownMinutes = 1;
+
+        if (errorMsgLower.includes('quota exceeded') && errorMsgLower.includes('per day')) {
+          cooldownMinutes = 1440; // 24 hours
+        } else if (errorMsgLower.includes('quota exceeded') || errorMsgLower.includes('rate limit')) {
+          cooldownMinutes = 1;
+        }
+
         exhaustedKeys.add(key.id);
-        void markKeyUsed(key.id).catch(() => {});
+        void cooldownApiKeyInternal(key.id, cooldownMinutes).catch(() => {});
         void incrementErrorCountInternal(key.id).catch(() => {});
         void logRequestInternal({
           apiKeyId: key.id,
@@ -415,7 +424,7 @@ export async function executeWithRetry(
           statusCode: 429,
           tokensUsed: 0,
           latencyMs: result.latencyMs,
-          errorMessage: 'Rate limited',
+          errorMessage: result.errorMessage || 'Rate limited',
         }).catch(() => {});
         continue;
       }

@@ -18,6 +18,7 @@ export interface Database {
           error_count: number;
           created_at: string;
           last_used_at: string | null;
+          rate_limited_until: string | null;
         };
         Insert: {
           id?: number;
@@ -27,6 +28,7 @@ export interface Database {
           error_count?: number;
           created_at?: string;
           last_used_at?: string | null;
+          rate_limited_until?: string | null;
         };
         Update: {
           id?: number;
@@ -36,6 +38,7 @@ export interface Database {
           error_count?: number;
           created_at?: string;
           last_used_at?: string | null;
+          rate_limited_until?: string | null;
         };
         Relationships: [];
       };
