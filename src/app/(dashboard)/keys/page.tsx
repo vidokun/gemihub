@@ -10,10 +10,31 @@ import {
   toggleApiKey,
   deleteApiKey,
   getKeyUsageCounts,
+  resetKeyCooldown,
+  resetAllCooldowns,
 } from '@/lib/supabase/operations/api-keys';
 import type { ApiKey } from '@/lib/types';
 
 const PAGE_SIZE = 10;
+
+function RefreshIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
+  );
+}
 
 function PlusIcon() {
   return (
@@ -104,6 +125,7 @@ export default function KeysPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive' | 'Cooldown'>('All');
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -129,9 +151,21 @@ export default function KeysPage() {
     fetchKeys();
   }, [fetchKeys]);
 
-  const filtered = keys.filter((k) =>
-    k.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = keys.filter((k) => {
+    const matchesSearch = k.name.toLowerCase().includes(search.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'All') return true;
+    
+    const isCooldown = k.rate_limited_until && new Date(k.rate_limited_until).getTime() > Date.now();
+
+    if (statusFilter === 'Cooldown') return isCooldown;
+    if (statusFilter === 'Active') return k.is_active && !isCooldown;
+    if (statusFilter === 'Inactive') return !k.is_active;
+
+    return true;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages - 1);
@@ -178,6 +212,36 @@ export default function KeysPage() {
     }
   };
 
+  const handleResetCooldown = async (id: number) => {
+    setLoadingIds((prev) => new Set(prev).add(id));
+    try {
+      await resetKeyCooldown(id);
+      await fetchKeys();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset cooldown');
+    } finally {
+      setLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const handleResetAllCooldowns = async () => {
+    setActionLoading(true);
+    try {
+      await resetAllCooldowns();
+      await fetchKeys();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset all cooldowns');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -190,24 +254,44 @@ export default function KeysPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className="
-            inline-flex items-center gap-2
-            h-10 px-4 rounded-lg
-            bg-[var(--accent)]
-            text-white text-sm font-semibold
-            transition-colors duration-150 ease-out
-            hover:opacity-90
-          "
-        >
-          <PlusIcon />
-          Add Key
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetAllCooldowns}
+            disabled={actionLoading}
+            className="
+              inline-flex items-center gap-2
+              h-10 px-4 rounded-lg
+              bg-[var(--card)]
+              text-[var(--text)] text-sm font-semibold
+              border border-[var(--border)]
+              transition-colors duration-150 ease-out
+              hover:bg-[var(--border)]
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            <RefreshIcon />
+            Reset Cooldowns
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="
+              inline-flex items-center gap-2
+              h-10 px-4 rounded-lg
+              bg-[var(--accent)]
+              text-white text-sm font-semibold
+              transition-colors duration-150 ease-out
+              hover:opacity-90
+            "
+          >
+            <PlusIcon />
+            Add Key
+          </button>
+        </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           value={search}
@@ -217,7 +301,7 @@ export default function KeysPage() {
           }}
           placeholder="Search keys by name"
           className="
-            w-full max-w-xs h-10 px-3.5 rounded-lg
+            flex-1 max-w-xs h-10 px-3.5 rounded-lg
             bg-[var(--card)]
             border border-[var(--border)]
             text-[var(--text)] text-sm
@@ -227,6 +311,27 @@ export default function KeysPage() {
             focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30
           "
         />
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value as any);
+            setPage(0);
+          }}
+          className="
+            h-10 px-3.5 rounded-lg
+            bg-[var(--card)]
+            border border-[var(--border)]
+            text-[var(--text)] text-sm
+            outline-none
+            transition-colors duration-150 ease-out
+            focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/30
+          "
+        >
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+          <option value="Cooldown">Cooldown</option>
+        </select>
       </div>
 
       {error && (
@@ -247,6 +352,7 @@ export default function KeysPage() {
             loadingIds={loadingIds}
             onToggle={handleToggle}
             onDelete={(id) => setDeleteId(id)}
+            onResetCooldown={handleResetCooldown}
           />
 
           {filtered.length > PAGE_SIZE && (

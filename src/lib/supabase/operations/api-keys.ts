@@ -126,6 +126,30 @@ export async function updateLastUsed(id: number): Promise<void> {
   }
 }
 
+export async function resetKeyCooldown(id: number): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('api_keys')
+    .update({ rate_limited_until: null })
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(`Failed to reset key cooldown: ${error.message}`);
+  }
+}
+
+export async function resetAllCooldowns(): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('api_keys')
+    .update({ rate_limited_until: null })
+    .not('rate_limited_until', 'is', null);
+
+  if (error) {
+    throw new Error(`Failed to reset all cooldowns: ${error.message}`);
+  }
+}
+
 export async function getKeyUsageCounts(): Promise<Record<number, number>> {
   const supabase = createAdminClient();
   const { data, error } = await supabase

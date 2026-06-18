@@ -9,6 +9,26 @@ interface KeyTableProps {
   loadingIds: Set<number>;
   onToggle: (id: number) => void;
   onDelete: (id: number) => void;
+  onResetCooldown?: (id: number) => void;
+}
+
+function UnlockIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+    </svg>
+  );
 }
 
 function EyeIcon() {
@@ -117,6 +137,7 @@ function KeyRow({
   onToggleReveal,
   onToggle,
   onDelete,
+  onResetCooldown,
 }: {
   apiKey: ApiKey;
   revealed: boolean;
@@ -125,7 +146,10 @@ function KeyRow({
   onToggleReveal: () => void;
   onToggle: () => void;
   onDelete: () => void;
+  onResetCooldown?: () => void;
 }) {
+  const isCooldown = apiKey.rate_limited_until && new Date(apiKey.rate_limited_until).getTime() > Date.now();
+
   return (
     <tr className="border-t border-[var(--border)]">
       <td className="px-4 py-3 text-sm text-[var(--text)] font-medium">
@@ -160,7 +184,9 @@ function KeyRow({
             px-2.5 py-0.5 rounded-full
             text-xs font-medium whitespace-nowrap
             ${
-              apiKey.is_active
+              isCooldown
+                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                : apiKey.is_active
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                 : 'bg-red-500/10 text-red-400 border border-red-500/20'
             }
@@ -169,10 +195,10 @@ function KeyRow({
           <span
             className={`
               w-1.5 h-1.5 rounded-full shrink-0
-              ${apiKey.is_active ? 'bg-emerald-400' : 'bg-red-400'}
+              ${isCooldown ? 'bg-amber-400' : apiKey.is_active ? 'bg-emerald-400' : 'bg-red-400'}
             `}
           />
-          {apiKey.is_active ? 'Active' : 'Inactive'}
+          {isCooldown ? 'Cooldown' : apiKey.is_active ? 'Active' : 'Inactive'}
         </span>
       </td>
 
@@ -225,13 +251,30 @@ function KeyRow({
           >
             {isLoading ? <SpinnerIcon /> : <TrashIcon />}
           </button>
+          {isCooldown && onResetCooldown && (
+            <button
+              type="button"
+              onClick={onResetCooldown}
+              disabled={isLoading}
+              className="
+                p-1.5 rounded-lg
+                text-amber-400
+                hover:text-amber-300 hover:bg-amber-500/10
+                transition-colors duration-150 ease-out
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+              aria-label="Reset cooldown"
+            >
+              <UnlockIcon />
+            </button>
+          )}
         </div>
       </td>
     </tr>
   );
 }
 
-export default function KeyTable({ keys, usageCounts, loadingIds, onToggle, onDelete }: KeyTableProps) {
+export default function KeyTable({ keys, usageCounts, loadingIds, onToggle, onDelete, onResetCooldown }: KeyTableProps) {
   const [revealedKeys, setRevealedKeys] = useState<Set<number>>(new Set());
 
   const toggleReveal = (id: number) => {
@@ -296,6 +339,7 @@ export default function KeyTable({ keys, usageCounts, loadingIds, onToggle, onDe
               onToggleReveal={() => toggleReveal(apiKey.id)}
               onToggle={() => onToggle(apiKey.id)}
               onDelete={() => onDelete(apiKey.id)}
+              onResetCooldown={onResetCooldown ? () => onResetCooldown(apiKey.id) : undefined}
             />
           ))}
         </tbody>
