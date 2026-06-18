@@ -271,6 +271,7 @@ async function tryWithKey(
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
+        'Referer': 'https://gemihub.vercel.app',
       },
       body: JSON.stringify(body),
     });

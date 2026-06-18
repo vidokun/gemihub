@@ -83,6 +83,7 @@ export async function callGeminiNonStreaming(
     headers: {
       'Content-Type': 'application/json',
       'x-goog-api-key': apiKey,
+      'Referer': 'https://gemihub.vercel.app',
     },
     body: JSON.stringify(body),
   });
@@ -119,6 +120,7 @@ export async function callGeminiStreaming(
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': apiKey,
+        'Referer': 'https://gemihub.vercel.app',
       },
       body: JSON.stringify(body),
     });
