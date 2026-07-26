@@ -238,7 +238,7 @@ async function tryWithKey(
           errorBody?.error?.message ??
           `Gemini API error: ${status}`;
 
-        if (status === 429) {
+        if (status === 429 || status === 403) {
           return { type: 'rate_limited', keyId, latencyMs, errorMessage: message };
         }
 
@@ -291,7 +291,7 @@ async function tryWithKey(
         errorBody?.error?.message ??
         `Gemini API error: ${status} ${response.statusText}`;
 
-      if (status === 429 || errorBody?.error?.status === 'RESOURCE_EXHAUSTED') {
+      if (status === 429 || status === 403 || errorBody?.error?.status === 'RESOURCE_EXHAUSTED') {
         return { type: 'rate_limited', keyId, latencyMs, errorMessage: message };
       }
 
